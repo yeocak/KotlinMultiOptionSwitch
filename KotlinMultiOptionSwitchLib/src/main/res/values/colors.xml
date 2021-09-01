@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="backGray">#61707D</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparentWhite">#33FFFFFF</color>
+    <color name="transparentBlack">#33000000</color>
+</resources>
