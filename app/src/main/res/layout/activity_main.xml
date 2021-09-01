@@ -27,6 +27,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:option_count="6"
+        app:selector_color="#999999"
+        app:shadow_visible="true"
         app:default_selected_option="3"/>
 
     <androidx.appcompat.widget.AppCompatButton

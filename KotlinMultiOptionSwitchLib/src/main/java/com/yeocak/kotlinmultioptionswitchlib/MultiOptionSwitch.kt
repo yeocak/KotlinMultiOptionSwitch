@@ -24,36 +24,44 @@ class MultiOptionSwitch @JvmOverloads constructor(
         optionChangedListener = f
     }
 
-    private var optionCount = 0
-    private var selectedOption = 5
-
     private var currentX = 0f
         get() {
             return field.coerceAtLeast(minXPosition).coerceAtMost(maxXPosition)
         }
 
     // region Colors
-    private val backGrayColor = ResourcesCompat.getColor(
+    private val defaultBackgroundColor = ResourcesCompat.getColor(
         resources,
         R.color.backGray,
         null
     )
-    private val lineColor = ResourcesCompat.getColor(
+    private val defaultLineColor = ResourcesCompat.getColor(
         resources,
         R.color.transparentWhite,
         null
     )
-    private val selectColor = ResourcesCompat.getColor(
+    private val defaultSelectorColor = ResourcesCompat.getColor(
         resources,
         R.color.white,
         null
     )
 
-    private val shadowColor = ResourcesCompat.getColor(
+    private val defaultShadowColor = ResourcesCompat.getColor(
         resources,
         R.color.transparentBlack,
         null
     )
+    // endregion
+
+    // region Settings
+    private var optionCount = 3
+    private var selectedOption = 0
+
+    private var backgroundVisible = true
+    private var shadowVisible = true
+
+    private var colorOfBackground = defaultBackgroundColor
+    private var selectorColor = defaultSelectorColor
     // endregion
 
     private var componentWidth by Delegates.notNull<Float>()
@@ -61,23 +69,23 @@ class MultiOptionSwitch @JvmOverloads constructor(
 
     // region Paints
     private val backgroundPaint = Paint().apply {
-        color = backGrayColor
+        color = defaultBackgroundColor
         isAntiAlias = true
     }
 
     private val linePaint = Paint().apply {
-        color = lineColor
+        color = defaultLineColor
         isAntiAlias = true
         style = Paint.Style.FILL
     }
 
-    private val selectPaint = Paint().apply {
-        color = selectColor
+    private val selectorPaint = Paint().apply {
+        color = defaultSelectorColor
         isAntiAlias = true
     }
 
     private val shadowPaint = Paint().apply {
-        color = shadowColor
+        color = defaultShadowColor
         isAntiAlias = true
     }
     //endregion
@@ -88,8 +96,19 @@ class MultiOptionSwitch @JvmOverloads constructor(
             R.styleable.MultiSwitch,
             0, 0
         ).apply {
+            // Getting data from attrs.xml
             optionCount = getInt(R.styleable.MultiSwitch_option_count, 3)
-            selectedOption = getInt(R.styleable.MultiSwitch_default_selected_option, 4)
+            selectedOption = getInt(R.styleable.MultiSwitch_default_selected_option, 0)
+            backgroundVisible = getBoolean(R.styleable.MultiSwitch_background_visible, true)
+            shadowVisible = getBoolean(R.styleable.MultiSwitch_shadow_visible, true)
+            colorOfBackground =
+                getColor(R.styleable.MultiSwitch_background_color, defaultBackgroundColor)
+            selectorColor = getColor(R.styleable.MultiSwitch_selector_color, defaultSelectorColor)
+
+            // Setting Paint Data
+            backgroundPaint.color = colorOfBackground
+            selectorPaint.color = selectorColor
+
             recycle()
         }
     }
@@ -98,7 +117,7 @@ class MultiOptionSwitch @JvmOverloads constructor(
     private var maxXPosition = 0f
     private var selectRadius = 0f
 
-    fun selectOption(optionIndex: Int){
+    fun selectOption(optionIndex: Int) {
         selectedOption = optionIndex - 1
 
         val destinationPosition = findXByOption(selectedOption)
@@ -126,9 +145,11 @@ class MultiOptionSwitch @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas?) {
-        drawBackground(canvas)
-        drawLines(canvas)
-        drawSelect(canvas)
+        if (backgroundVisible) {
+            drawBackground(canvas)
+            drawLines(canvas)
+        }
+        drawSelector(canvas)
     }
 
     private val selectAnimator = ValueAnimator.ofFloat(0f, 0f).apply {
@@ -183,16 +204,18 @@ class MultiOptionSwitch @JvmOverloads constructor(
     }
 
     private fun drawBackground(canvas: Canvas?) {
-        // Draw shadow of background
-        canvas?.drawRoundRect(
-            8f,
-            12f,
-            componentWidth + 8,
-            componentHeight + 12,
-            200f,
-            200f,
-            shadowPaint
-        )
+        if (shadowVisible) {
+            // Draw shadow of background
+            canvas?.drawRoundRect(
+                8f,
+                12f,
+                componentWidth + 8,
+                componentHeight + 12,
+                200f,
+                200f,
+                shadowPaint
+            )
+        }
 
         // Draw background
         canvas?.drawRoundRect(
@@ -219,21 +242,23 @@ class MultiOptionSwitch @JvmOverloads constructor(
         }
     }
 
-    private fun drawSelect(canvas: Canvas?) {
-        // Draw shadow of select ball
-        canvas?.drawCircle(
-            currentX + 3,
-            componentHeight / 2f + 12,
-            selectRadius,
-            shadowPaint
-        )
+    private fun drawSelector(canvas: Canvas?) {
+        if (shadowVisible) {
+            // Draw shadow of selector ball
+            canvas?.drawCircle(
+                currentX + 3,
+                componentHeight / 2f + 12,
+                selectRadius,
+                shadowPaint
+            )
+        }
 
-        // Draw select ball
+        // Draw selector ball
         canvas?.drawCircle(
             currentX,
             componentHeight / 2f + 5,
             selectRadius,
-            selectPaint
+            selectorPaint
         )
     }
 

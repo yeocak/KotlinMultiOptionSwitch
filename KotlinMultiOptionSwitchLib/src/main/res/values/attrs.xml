@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="MultiSwitch">
+
         <attr name="option_count" format="integer" />
         <attr name="default_selected_option" format="integer" />
+
+        <attr name="background_visible" format="boolean" />
+        <attr name="shadow_visible" format="boolean" />
+
+        <attr name="background_color" format="color" />
+        <attr name="selector_color" format="color" />
+
     </declare-styleable>
 </resources>
