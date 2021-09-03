@@ -2,7 +2,7 @@
 
 #### This is a open source Multi Option Switch View.
 [![](https://jitpack.io/v/yeocak/KotlinMultiOptionSwitch.svg)](https://jitpack.io/#yeocak/KotlinMultiOptionSwitch) <br>
-![](https://raw.githubusercontent.com/yeocak/KotlinMultiOptionSwitch/master/forgithub/app.gif)
+![](https://raw.githubusercontent.com/yeocak/KotlinMultiOptionSwitch/master/forgithub/animateland.gif)
 
 <br>
 
@@ -19,6 +19,7 @@ Layout customizing:
         app:default_selected_option = INT -> You can change the starter option if you want. DEFAULT = 1
         app:background_visible = BOOLEAN -> Background visibility. DEFAULT = true
         app:shadow_visible = BOOLEAN -> Shadow visibility. DEFAULT = true
+        app:direction = "horizontal" or "vertical" -> DEFAULT = "horizontal"
         app:background_color = COLOR -> Background color. DEFAULT = "#61707D"
         app:selector_color = COLOR -> Selector ball color. DEFAULT = "#FFFFFF"
 
@@ -51,5 +52,5 @@ Add it in your root build.gradle at the end of repositories:
 Add the dependency:
 
     dependencies {
-      implementation 'com.github.yeocak:KotlinMultiOptionSwitch:0.2.0'
+      implementation 'com.github.yeocak:KotlinMultiOptionSwitch:0.3.0'
     }
