@@ -8,28 +8,55 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/text"
+        android:id="@+id/text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@+id/button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/button"
+        app:layout_constraintEnd_toStartOf="@+id/button"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/button" />
 
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintEnd_toEndOf="@+id/button"
+        app:layout_constraintStart_toStartOf="@+id/button"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.yeocak.kotlinmultioptionswitchlib.MultiOptionSwitch
-        android:id="@+id/multiOptionSwitch"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:id="@+id/multiOptionSwitch1"
+        android:layout_width="40dp"
+        android:layout_height="0dp"
         android:layout_margin="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+
+        app:default_selected_option="7"
+        app:direction="vertical"
+        app:option_count="11"
+        app:selector_color="#D8BFAA"
+        app:background_color="#227C9D"/>
+
+    <com.yeocak.kotlinmultioptionswitchlib.MultiOptionSwitch
+        android:id="@+id/multiOptionSwitch2"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:layout_margin="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/multiOptionSwitch1"
         app:layout_constraintStart_toStartOf="parent"
+
+        app:default_selected_option="3"
+        app:direction="horizontal"
         app:option_count="6"
-        app:selector_color="#999999"
-        app:shadow_visible="true"
-        app:default_selected_option="3"/>
+        app:shadow_visible="true" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/button"
@@ -37,7 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:text="GO TO OPTION 2"
-        app:layout_constraintBottom_toTopOf="@+id/multiOptionSwitch"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toTopOf="@+id/multiOptionSwitch2"
+        app:layout_constraintEnd_toStartOf="@+id/multiOptionSwitch1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

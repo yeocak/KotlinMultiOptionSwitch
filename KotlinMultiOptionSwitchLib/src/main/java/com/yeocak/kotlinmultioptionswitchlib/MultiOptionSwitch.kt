@@ -1,17 +1,17 @@
 package com.yeocak.kotlinmultioptionswitchlib
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.LinearInterpolator
 import androidx.core.content.res.ResourcesCompat
-import kotlin.math.abs
-import kotlin.properties.Delegates
+import com.yeocak.kotlinmultioptionswitchlib.background.HorizontalSwitchBackground
+import com.yeocak.kotlinmultioptionswitchlib.background.SwitchBackground
+import com.yeocak.kotlinmultioptionswitchlib.background.VerticalSwitchBackground
 
 class MultiOptionSwitch @JvmOverloads constructor(
     context: Context,
@@ -24,10 +24,9 @@ class MultiOptionSwitch @JvmOverloads constructor(
         optionChangedListener = f
     }
 
-    private var currentX = 0f
-        get() {
-            return field.coerceAtLeast(minXPosition).coerceAtMost(maxXPosition)
-        }
+    private var optionCount = 3
+
+    private val selectCoordinates = arrayListOf<Float>()
 
     // region Colors
     private val defaultBackgroundColor = ResourcesCompat.getColor(
@@ -53,20 +52,6 @@ class MultiOptionSwitch @JvmOverloads constructor(
     )
     // endregion
 
-    // region Settings
-    private var optionCount = 3
-    private var selectedOption = 0
-
-    private var backgroundVisible = true
-    private var shadowVisible = true
-
-    private var colorOfBackground = defaultBackgroundColor
-    private var selectorColor = defaultSelectorColor
-    // endregion
-
-    private var componentWidth by Delegates.notNull<Float>()
-    private var componentHeight by Delegates.notNull<Float>()
-
     // region Paints
     private val backgroundPaint = Paint().apply {
         color = defaultBackgroundColor
@@ -90,6 +75,9 @@ class MultiOptionSwitch @JvmOverloads constructor(
     }
     //endregion
 
+    private var background: SwitchBackground
+    private var selector = SelectorBall()
+
     init {
         context.theme.obtainStyledAttributes(
             attrs,
@@ -97,13 +85,25 @@ class MultiOptionSwitch @JvmOverloads constructor(
             0, 0
         ).apply {
             // Getting data from attrs.xml
+            background = if (getInt(R.styleable.MultiSwitch_direction, 0) == 0) {
+                HorizontalSwitchBackground()
+            } else {
+                VerticalSwitchBackground()
+            }
+
             optionCount = getInt(R.styleable.MultiSwitch_option_count, 3)
-            selectedOption = getInt(R.styleable.MultiSwitch_default_selected_option, 0)
-            backgroundVisible = getBoolean(R.styleable.MultiSwitch_background_visible, true)
-            shadowVisible = getBoolean(R.styleable.MultiSwitch_shadow_visible, true)
-            colorOfBackground =
+            selector.selectedOption = getInt(R.styleable.MultiSwitch_default_selected_option, 1) - 1
+            background.backgroundVisible =
+                getBoolean(R.styleable.MultiSwitch_background_visible, true)
+
+            val shadowVisible = getBoolean(R.styleable.MultiSwitch_shadow_visible, true)
+            selector.shadowVisible = shadowVisible
+            background.shadowVisible = shadowVisible
+
+            val colorOfBackground =
                 getColor(R.styleable.MultiSwitch_background_color, defaultBackgroundColor)
-            selectorColor = getColor(R.styleable.MultiSwitch_selector_color, defaultSelectorColor)
+            val selectorColor =
+                getColor(R.styleable.MultiSwitch_selector_color, defaultSelectorColor)
 
             // Setting Paint Data
             backgroundPaint.color = colorOfBackground
@@ -113,164 +113,135 @@ class MultiOptionSwitch @JvmOverloads constructor(
         }
     }
 
-    private var minXPosition = 0f
-    private var maxXPosition = 0f
-    private var selectRadius = 0f
-
     fun selectOption(optionIndex: Int) {
-        selectedOption = optionIndex - 1
-
-        val destinationPosition = findXByOption(selectedOption)
-
-        selectAnimator.apply {
-            setFloatValues(currentX, destinationPosition)
-            start()
+        selector.goPositionWithAnimation(
+            selectCoordinates[optionIndex - 1],
+            background.isHorizontal
+        ) {
+            selector.selectedOption = optionIndex - 1
+            invalidate()
         }
 
         optionChangedListener?.let {
-            it(selectedOption + 1)
+            it(selector.selectedOption + 1)
+        }
+    }
+
+    private fun findNearestOptionPosition(position: Float): Int {
+        var distance = Float.MAX_VALUE
+        var index = -1
+
+        for (a in 0 until selectCoordinates.size) {
+            val newDistance = kotlin.math.abs(position - selectCoordinates[a])
+            if (newDistance < distance) {
+                distance = newDistance
+                index = a
+            }
+        }
+
+        return index
+    }
+
+    private fun setSelectCoordinates(backgroundCoordinates: RectF, selectorRadius: Float) {
+        if (background.isHorizontal) {
+            val partWidth =
+                (backgroundCoordinates.right - backgroundCoordinates.left) / (optionCount - 1)
+
+            selectCoordinates.clear()
+            selectCoordinates.add(backgroundCoordinates.left + selectorRadius + 10f)
+
+            for (a in 1 until optionCount - 1) {
+                selectCoordinates.add(backgroundCoordinates.left + partWidth * a)
+            }
+
+            selectCoordinates.add(backgroundCoordinates.right - selectorRadius - 10f)
+        } else {
+            val partHeight =
+                (backgroundCoordinates.bottom - backgroundCoordinates.top) / (optionCount - 1)
+
+            selectCoordinates.clear()
+            selectCoordinates.add(backgroundCoordinates.top + selectorRadius + 10f)
+
+            for (a in 1 until optionCount - 1) {
+                selectCoordinates.add(backgroundCoordinates.top + partHeight * a)
+            }
+
+            selectCoordinates.add(backgroundCoordinates.bottom - selectorRadius - 10f)
         }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        componentWidth = (w - 10).toFloat()
-        componentHeight = (h - 10).toFloat()
 
-        selectRadius = componentHeight / 2f - 10
-        minXPosition = selectRadius + 20
-        maxXPosition = w - selectRadius - 20
+        val backgroundCoordinates = RectF(5f, 7f, w - 5f, h - 7f)
+        background.coordinates.set(backgroundCoordinates)
 
-        currentX = findXByOption()
+        val selectorRadius: Float = if (background.isHorizontal) {
+            (backgroundCoordinates.bottom - backgroundCoordinates.top) / 2 - 10
+        } else {
+            (backgroundCoordinates.right - backgroundCoordinates.left) / 2 - 10
+        }
+
+        setSelectCoordinates(backgroundCoordinates, selectorRadius)
+
+        if (background.isHorizontal) {
+            selector.positionX = selectCoordinates[selector.selectedOption]
+            selector.positionY =
+                (backgroundCoordinates.bottom - backgroundCoordinates.top) / 2 + backgroundCoordinates.top
+        } else {
+            selector.positionX =
+                (backgroundCoordinates.right - backgroundCoordinates.left) / 2 + backgroundCoordinates.left
+            selector.positionY =
+                selectCoordinates[selector.selectedOption]
+        }
+
+        selector.radius = selectorRadius
     }
 
     override fun onDraw(canvas: Canvas?) {
-        if (backgroundVisible) {
-            drawBackground(canvas)
-            drawLines(canvas)
-        }
-        drawSelector(canvas)
-    }
-
-    private val selectAnimator = ValueAnimator.ofFloat(0f, 0f).apply {
-        duration = 100
-        interpolator = LinearInterpolator()
-        addUpdateListener { valueAnimator ->
-            currentX = valueAnimator.animatedValue as Float
-            invalidate()
-        }
-    }
-
-    private fun findXByOption(option: Int = selectedOption): Float {
-        val singlePartWidth = componentWidth / (optionCount - 1f) * option + 5
-
-        if (option == 0) return minXPosition
-        else if (option == optionCount - 1) return maxXPosition
-
-        return singlePartWidth
-    }
-
-    private fun goNearestPointWithAnimation() {
-        selectedOption = findNearestOption()
-
-        val destinationPosition = findXByOption(selectedOption)
-
-        selectAnimator.apply {
-            setFloatValues(currentX, destinationPosition)
-            start()
-        }
-    }
-
-    private fun findNearestOption(currentPosition: Float = currentX): Int {
-        var distance = Float.MAX_VALUE
-        var whichOption = -1
-
-        if (currentPosition - minXPosition < distance) {
-            distance = currentPosition - minXPosition
-            whichOption = 0
-        }
-        if (abs(currentPosition - maxXPosition) < distance) {
-            distance = abs(currentPosition - maxXPosition)
-            whichOption = optionCount - 1
-        }
-        for (a in 1..(optionCount - 2)) {
-            if (abs(currentPosition - findXByOption(a)) < distance) {
-                distance = abs(currentPosition - findXByOption(a))
-                whichOption = a
-            }
-        }
-
-        return whichOption
-    }
-
-    private fun drawBackground(canvas: Canvas?) {
-        if (shadowVisible) {
-            // Draw shadow of background
-            canvas?.drawRoundRect(
-                8f,
-                12f,
-                componentWidth + 8,
-                componentHeight + 12,
-                200f,
-                200f,
-                shadowPaint
-            )
-        }
-
-        // Draw background
-        canvas?.drawRoundRect(
-            5f,
-            5f,
-            componentWidth + 5,
-            componentHeight + 5,
-            200f,
-            200f,
-            backgroundPaint
-        )
-    }
-
-    private fun drawLines(canvas: Canvas?) {
-        val partWidth = componentWidth / (optionCount - 1f)
-        for (a in 1..optionCount - 2) {
-            canvas?.drawRect(
-                partWidth * a + 3,
-                30f,
-                partWidth * a + 7,
-                componentHeight - 30f,
-                linePaint
-            )
-        }
-    }
-
-    private fun drawSelector(canvas: Canvas?) {
-        if (shadowVisible) {
-            // Draw shadow of selector ball
-            canvas?.drawCircle(
-                currentX + 3,
-                componentHeight / 2f + 12,
-                selectRadius,
-                shadowPaint
-            )
-        }
-
-        // Draw selector ball
-        canvas?.drawCircle(
-            currentX,
-            componentHeight / 2f + 5,
-            selectRadius,
-            selectorPaint
-        )
+        background.draw(canvas, backgroundPaint, linePaint, shadowPaint, selectCoordinates)
+        selector.draw(canvas, selectorPaint, shadowPaint)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_MOVE) {
-            currentX = event.x
-            invalidate()
-        } else if (event.action == MotionEvent.ACTION_UP) {
-            goNearestPointWithAnimation()
-            optionChangedListener?.let {
-                it(selectedOption + 1)
+        if (background.isHorizontal) {
+            if (event.action == MotionEvent.ACTION_MOVE) {
+                selector.positionX = event.x.coerceAtLeast(selectCoordinates.first())
+                    .coerceAtMost(selectCoordinates.last())
+                invalidate()
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val nearestOption = findNearestOptionPosition(selector.positionX)
+                selector.goPositionWithAnimation(
+                    selectCoordinates[nearestOption],
+                    true
+                ) {
+                    selector.selectedOption = nearestOption
+                    invalidate()
+                }
+
+                optionChangedListener?.let {
+                    it(selector.selectedOption + 1)
+                }
+            }
+        } else {
+            if (event.action == MotionEvent.ACTION_MOVE) {
+                selector.positionY = event.y.coerceAtLeast(selectCoordinates.first())
+                    .coerceAtMost(selectCoordinates.last())
+                invalidate()
+            } else if (event.action == MotionEvent.ACTION_UP) {
+                val nearestOption = findNearestOptionPosition(selector.positionY)
+                selector.goPositionWithAnimation(
+                    selectCoordinates[nearestOption],
+                    false
+                ) {
+                    selector.selectedOption = nearestOption
+                    invalidate()
+                }
+
+                optionChangedListener?.let {
+                    it(selector.selectedOption + 1)
+                }
             }
         }
         return true

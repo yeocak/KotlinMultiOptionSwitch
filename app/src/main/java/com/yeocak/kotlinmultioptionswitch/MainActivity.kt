@@ -11,14 +11,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val multiOptionSwitch = findViewById<MultiOptionSwitch>(R.id.multiOptionSwitch)
+        val multiOptionSwitch1 = findViewById<MultiOptionSwitch>(R.id.multiOptionSwitch1)
+        val multiOptionSwitch2 = findViewById<MultiOptionSwitch>(R.id.multiOptionSwitch2)
         val button = findViewById<Button>(R.id.button)
-        val textView = findViewById<TextView>(R.id.text)
+        val textView1 = findViewById<TextView>(R.id.text1)
+        val textView2 = findViewById<TextView>(R.id.text2)
 
-        multiOptionSwitch.setOptionChangedListener {
-            textView.text = "Selected: $it"
+        multiOptionSwitch1.setOptionChangedListener {
+            textView1.text = "Selected: $it"
         }
 
-        button.setOnClickListener { multiOptionSwitch.selectOption(2) }
+        multiOptionSwitch2.setOptionChangedListener {
+            textView2.text = "Selected: $it"
+        }
+
+        button.setOnClickListener {
+            multiOptionSwitch1.selectOption(2)
+            multiOptionSwitch2.selectOption(2)
+        }
     }
 }

@@ -7,6 +7,10 @@
 
         <attr name="background_visible" format="boolean" />
         <attr name="shadow_visible" format="boolean" />
+        <attr name="direction" format="enum">
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
 
         <attr name="background_color" format="color" />
         <attr name="selector_color" format="color" />
