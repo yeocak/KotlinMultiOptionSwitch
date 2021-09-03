@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E37562"
+    android:background="#CDD7D6"
     tools:context=".MainActivity">
 
     <TextView
@@ -27,22 +27,22 @@
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintEnd_toEndOf="@+id/button"
         app:layout_constraintStart_toStartOf="@+id/button"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/multiOptionSwitch1" />
 
     <com.yeocak.kotlinmultioptionswitchlib.MultiOptionSwitch
         android:id="@+id/multiOptionSwitch1"
         android:layout_width="40dp"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_margin="10dp"
+        app:background_color="#227C9D"
+
+        app:direction="vertical"
+        app:default_selected_option="3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-
-        app:default_selected_option="7"
-        app:direction="vertical"
-        app:option_count="11"
-        app:selector_color="#D8BFAA"
-        app:background_color="#227C9D"/>
+        app:option_count="4"
+        app:selector_color="#D8BFAA" />
 
     <com.yeocak.kotlinmultioptionswitchlib.MultiOptionSwitch
         android:id="@+id/multiOptionSwitch2"
@@ -55,7 +55,7 @@
 
         app:default_selected_option="3"
         app:direction="horizontal"
-        app:option_count="6"
+        app:option_count="9"
         app:shadow_visible="true" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -63,7 +63,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
+        android:background="#B3A394"
         android:text="GO TO OPTION 2"
+        android:padding="10dp"
         app:layout_constraintBottom_toTopOf="@+id/multiOptionSwitch2"
         app:layout_constraintEnd_toStartOf="@+id/multiOptionSwitch1" />
 

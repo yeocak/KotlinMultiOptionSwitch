@@ -192,6 +192,7 @@ class MultiOptionSwitch @JvmOverloads constructor(
             selector.positionX =
                 (backgroundCoordinates.right - backgroundCoordinates.left) / 2 + backgroundCoordinates.left
             selector.positionY =
+                // TODO
                 selectCoordinates[selector.selectedOption]
         }
 
