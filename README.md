@@ -52,5 +52,5 @@ Add it in your root build.gradle at the end of repositories:
 Add the dependency:
 
     dependencies {
-      implementation 'com.github.yeocak:KotlinMultiOptionSwitch:0.3.0'
+      implementation 'com.github.yeocak:KotlinMultiOptionSwitch:0.3.2'
     }

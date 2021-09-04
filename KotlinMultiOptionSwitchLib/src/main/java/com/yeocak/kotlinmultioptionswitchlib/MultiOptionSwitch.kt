@@ -84,13 +84,14 @@ class MultiOptionSwitch @JvmOverloads constructor(
             R.styleable.MultiSwitch,
             0, 0
         ).apply {
-            // Getting data from attrs.xml
+            // Set background by direction
             background = if (getInt(R.styleable.MultiSwitch_direction, 0) == 0) {
                 HorizontalSwitchBackground()
             } else {
                 VerticalSwitchBackground()
             }
 
+            // Getting data from attrs.xml
             optionCount = getInt(R.styleable.MultiSwitch_option_count, 3)
             selector.selectedOption = getInt(R.styleable.MultiSwitch_default_selected_option, 1) - 1
             background.backgroundVisible =
@@ -113,7 +114,17 @@ class MultiOptionSwitch @JvmOverloads constructor(
         }
     }
 
+    /**
+    You can select option between 1 and "optionCount".
+     */
     fun selectOption(optionIndex: Int) {
+        if (optionIndex < 1 || optionIndex > optionCount)
+            throw ArrayIndexOutOfBoundsException(
+                "Your multi option switch has only ${optionCount}. " +
+                        "But you tried to select option ${optionIndex}. " +
+                        "You should select to between [1,${optionCount}]"
+            )
+
         selector.goPositionWithAnimation(
             selectCoordinates[optionIndex - 1],
             background.isHorizontal
@@ -192,7 +203,6 @@ class MultiOptionSwitch @JvmOverloads constructor(
             selector.positionX =
                 (backgroundCoordinates.right - backgroundCoordinates.left) / 2 + backgroundCoordinates.left
             selector.positionY =
-                // TODO
                 selectCoordinates[selector.selectedOption]
         }
 
@@ -206,45 +216,40 @@ class MultiOptionSwitch @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (background.isHorizontal) {
-            if (event.action == MotionEvent.ACTION_MOVE) {
-                selector.positionX = event.x.coerceAtLeast(selectCoordinates.first())
-                    .coerceAtMost(selectCoordinates.last())
+        fun goOptionWithAnimation(nearestOption: Int, isHorizontal: Boolean) {
+            selector.goPositionWithAnimation(
+                selectCoordinates[nearestOption],
+                isHorizontal
+            ) {
+                selector.selectedOption = nearestOption
                 invalidate()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                val nearestOption = findNearestOptionPosition(selector.positionX)
-                selector.goPositionWithAnimation(
-                    selectCoordinates[nearestOption],
-                    true
-                ) {
-                    selector.selectedOption = nearestOption
-                    invalidate()
-                }
-
-                optionChangedListener?.let {
-                    it(selector.selectedOption + 1)
-                }
             }
-        } else {
-            if (event.action == MotionEvent.ACTION_MOVE) {
-                selector.positionY = event.y.coerceAtLeast(selectCoordinates.first())
-                    .coerceAtMost(selectCoordinates.last())
-                invalidate()
-            } else if (event.action == MotionEvent.ACTION_UP) {
-                val nearestOption = findNearestOptionPosition(selector.positionY)
-                selector.goPositionWithAnimation(
-                    selectCoordinates[nearestOption],
-                    false
-                ) {
-                    selector.selectedOption = nearestOption
-                    invalidate()
-                }
 
-                optionChangedListener?.let {
-                    it(selector.selectedOption + 1)
-                }
+            optionChangedListener?.let {
+                it(selector.selectedOption + 1)
             }
         }
+
+        if (event.action == MotionEvent.ACTION_MOVE) {
+            if (background.isHorizontal) {
+                selector.positionX = event.x.coerceAtLeast(selectCoordinates.first())
+                    .coerceAtMost(selectCoordinates.last())
+            } else {
+                selector.positionY = event.y.coerceAtLeast(selectCoordinates.first())
+                    .coerceAtMost(selectCoordinates.last())
+            }
+            invalidate()
+        } else if (event.action == MotionEvent.ACTION_UP) {
+            if (background.isHorizontal) {
+                val nearestOption = findNearestOptionPosition(selector.positionX)
+                goOptionWithAnimation(nearestOption, true)
+            } else {
+                val nearestOption = findNearestOptionPosition(selector.positionY)
+                goOptionWithAnimation(nearestOption, false)
+            }
+
+        }
+
         return true
     }
 
